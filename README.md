@@ -68,7 +68,10 @@ The resource uses a modular architecture where each feature has its client and s
 
 ### For Workers
 1. Get inside a supported food truck (mrtasty or taco)
-2. Type `/foodtruck` to start working
+2. Start working using one of these methods:
+   - Type `/foodtruck` command
+   - Trigger via event: `TriggerEvent('fish_foodtruck:toggleWork')`
+   - Use a radial menu (qb-radialmenu, ox_lib radial, etc.)
 3. Menu options:
    - **Recipe options** - Dynamic menu showing all recipes for your truck type
    - **Start/Stop Selling to NPCs** - Toggle automatic NPC sales

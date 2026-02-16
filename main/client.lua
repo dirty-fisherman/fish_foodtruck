@@ -59,7 +59,7 @@ RegisterNetEvent('fish_foodtruck:workDeniedJob', function(reason)
 end)
 
 -- Command to start working
-RegisterCommand(Config.WorkCommand, function()
+local function HandleWorkToggle()
     local inTruck, vehicle, truckType, truckConfig = IsInFoodTruck()
     
     if not inTruck then
@@ -85,7 +85,12 @@ RegisterCommand(Config.WorkCommand, function()
         }
         TriggerServerEvent('fish_foodtruck:requestWorkStart', plate)
     end
-end, false)
+end
+
+RegisterCommand(Config.WorkCommand, HandleWorkToggle, false)
+
+-- Event to toggle work (for radial menus like qb-radialmenu)
+RegisterNetEvent('fish_foodtruck:toggleWork', HandleWorkToggle)
 
 -- Detect vehicle exit button press
 CreateThread(function()
