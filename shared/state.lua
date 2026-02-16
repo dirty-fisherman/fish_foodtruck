@@ -74,8 +74,8 @@ function CreateServingPed()
     -- Store original seat
     State.originalSeat = GetPedInVehicleSeat(State.currentVehicle, -1) == playerPed and -1 or GetPedVehicleSeat(playerPed)
     
-    -- Clone player ped
-    local servingPed = ClonePed(playerPed, false, false, true)
+    -- Clone player ped (networked so other players can see it)
+    local servingPed = ClonePed(playerPed, true, false, true)
     
     -- Disable collision completely
     SetEntityCollision(servingPed, false, false)
