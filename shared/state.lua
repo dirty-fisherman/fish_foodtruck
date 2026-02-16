@@ -119,6 +119,12 @@ function CreateServingPed()
     
     State.servingPed = servingPed
     
+    -- Override voice position to match serving ped (for pma-voice)
+    if GetResourceState('pma-voice') == 'started' then
+        local servingPos = GetEntityCoords(servingPed)
+        exports['pma-voice']:overridePlayerPosition(servingPos)
+    end
+    
     -- Start damage monitoring thread
     CreateThread(function()
         local clonePed = servingPed -- Local reference to avoid race condition
@@ -180,6 +186,11 @@ function CleanupServingPed()
     
     -- Clear state FIRST to stop damage monitoring thread
     State.servingPed = nil
+    
+    -- Clear voice position override
+    if GetResourceState('pma-voice') == 'started' then
+        exports['pma-voice']:clearPlayerPosition()
+    end
     
     -- Make player visible again
     if DoesEntityExist(playerPed) then
