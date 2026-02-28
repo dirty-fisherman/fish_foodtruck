@@ -105,7 +105,7 @@ local function MakeNPCApproach(npc)
             -- Check if NPC is stuck (not making progress)
             if math.abs(dist - lastDist) < 0.5 then
                 stuckCounter = stuckCounter + 1
-                if stuckCounter >= 10 then -- Stuck for 5 seconds
+                if stuckCounter >= 30 then -- Stuck for 30 seconds
                     if Config.Debug then
                         print('^1[NPC Approach] NPC appears stuck, cancelling^7')
                     end

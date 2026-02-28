@@ -12,7 +12,8 @@ shared_scripts {
 }
 
 client_scripts {
-    'shared/state.lua',
+    'main/state.lua',
+    'modules/ped/client.lua',
     'modules/crafting/client.lua',
     'modules/serving/client.lua',
     'modules/npc/client.lua',
@@ -20,7 +21,7 @@ client_scripts {
 }
 
 server_scripts {
-    'shared/utils.lua',
+    'main/utils.lua',
     'modules/crafting/server.lua',
     'modules/serving/server.lua',
     'modules/npc/server.lua',

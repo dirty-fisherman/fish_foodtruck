@@ -92,7 +92,8 @@ AddEventHandler('baseevents:leftVehicle', function()
 end)
 
 -- Clean up when player disconnects
-AddEventHandler('playerDropped', function()    local source = source
+AddEventHandler('playerDropped', function()
+    local source = source
     local vehicleNetId = workerVehicle[source]
 
     if vehicleNetId then
