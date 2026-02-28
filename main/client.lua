@@ -92,63 +92,49 @@ RegisterCommand(Config.WorkCommand, HandleWorkToggle, false)
 -- Event to toggle work (for radial menus like qb-radialmenu)
 RegisterNetEvent('fish_foodtruck:toggleWork', HandleWorkToggle)
 
--- Detect vehicle exit button press
-CreateThread(function()
-    while true do
-        Wait(0)
-        
-        if State.isWorking then
-            -- Control 75 is the vehicle exit key (F by default)
-            if IsControlJustPressed(0, 75) then
-                ResetWorkingState()
-                lib.notify({
-                    title = 'Food Truck',
-                    description = 'You stopped working',
-                    type = 'info'
-                })
-            end
-        else
-            Wait(500) -- Sleep when not working
-        end
+-- Detect vehicle exit via cache event (covers F key, being dragged out, teleports, etc.)
+AddEventHandler('cache:vehicle', function(vehicle)
+    if not vehicle and State.isWorking then
+        ResetWorkingState()
+        lib.notify({
+            title = 'Food Truck',
+            description = 'You stopped working',
+            type = 'info'
+        })
     end
 end)
 
--- Event-driven: Player death
-AddEventHandler('gameEventTriggered', function(event, data)
-    if event == 'CEventNetworkEntityDamage' then
-        local victim = data[1]
-        if victim == cache.ped and IsEntityDead(victim) and State.isWorking then
-            ResetWorkingState()
-        end
+-- Event-driven: Player death (baseevents)
+AddEventHandler('baseevents:onPlayerDied', function()
+    if State.isWorking then
+        ResetWorkingState()
     end
 end)
 
--- Monitor for theft, ragdoll, and vehicle movement (these need polling)
+AddEventHandler('baseevents:onPlayerKilled', function()
+    if State.isWorking then
+        ResetWorkingState()
+    end
+end)
+
+-- Monitor for ragdoll/jacking and theft (vehicle-exit is handled by cache:vehicle event)
 CreateThread(function()
     while true do
-        Wait(State.isWorking and 500 or 2000) -- Check every half second when working
-        
+        Wait(State.isWorking and 500 or 2000)
+
         if State.isWorking then
             local playerPed = cache.ped
-            
-            -- Check current vehicle - catch if somehow we're not in it anymore
-            local currentVeh = GetVehiclePedIsIn(playerPed, false)
-            if currentVeh ~= State.currentVehicle then
-                ResetWorkingState()
-            end
-            
-            -- Check if player is being dragged out or in ragdoll
-            if IsPedRagdoll(playerPed) or IsPedBeingJacked(playerPed) or IsPedGettingUp(playerPed) then
+
+            -- Check if player is being ragdolled or jacked
+            if IsPedRagdoll(playerPed) or IsPedBeingJacked(playerPed) then
                 ResetWorkingState()
                 lib.notify({
                     title = 'Food Truck',
                     description = 'You stopped working',
                     type = 'info'
                 })
-            end
-            
-            -- Check if vehicle was stolen (someone else in driver seat)
-            if State.currentVehicle and DoesEntityExist(State.currentVehicle) then
+            -- Check if someone jumped in the driver seat (truck theft)
+            elseif State.currentVehicle and DoesEntityExist(State.currentVehicle) then
                 local driverSeat = GetPedInVehicleSeat(State.currentVehicle, -1)
                 if driverSeat ~= 0 and driverSeat ~= playerPed then
                     ResetWorkingState()
@@ -218,14 +204,3 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 end)
 
--- Extra safety: cleanup on player death (redundant but harmless fallback)
-CreateThread(function()
-    while true do
-        Wait(2000) -- Only every 2 seconds as event handler is primary
-        
-        local playerPed = cache.ped
-        if playerPed and IsEntityDead(playerPed) and State.isWorking then
-            ResetWorkingState()
-        end
-    end
-end)
