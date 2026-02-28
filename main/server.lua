@@ -24,7 +24,7 @@ RegisterNetEvent('fish_foodtruck:requestWorkStart', function(plate, vehicleNetId
 
         local hasJob = false
         for _, allowedJob in ipairs(Config.AllowedJobs) do
-            if player.charId and player.getGroup(allowedJob) then
+            if player.charId and player:getGroup(allowedJob) then
                 hasJob = true
                 break
             end
@@ -45,7 +45,7 @@ RegisterNetEvent('fish_foodtruck:requestWorkStart', function(plate, vehicleNetId
     -- Check entity statebag instead of a manual plate table
     local existingWorker = Entity(vehicle).state.foodtruckWorker
     if existingWorker and existingWorker ~= source then
-        if GetPlayerPing(existingWorker) > 0 then
+        if GetPlayerName(existingWorker) ~= nil then
             TriggerClientEvent('fish_foodtruck:workDenied', source)
             return
         end
@@ -56,6 +56,9 @@ RegisterNetEvent('fish_foodtruck:requestWorkStart', function(plate, vehicleNetId
     Entity(vehicle).state:set('foodtruckWorker', source, true)
     -- Let other resources know this player is working a food truck
     Player(source).state:set('foodtruckWorking', true, true)
+
+    -- Pre-register serving stash so it's ready before any NPC sales or stash opens
+    GetOrCreateServingStash(plate)
 
     workerVehicle[source] = vehicleNetId
     TriggerClientEvent('fish_foodtruck:workApproved', source)
@@ -101,6 +104,7 @@ AddEventHandler('playerDropped', function()
         if DoesEntityExist(vehicle) then
             Entity(vehicle).state:set('foodtruckWorker', nil, true)
         end
+        Player(source).state:set('foodtruckWorking', false, true)
         workerVehicle[source] = nil
     end
 end)

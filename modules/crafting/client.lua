@@ -10,7 +10,7 @@ local function OpenCraftingSubmenu()
             description = recipe.description,
             icon = 'utensils',
             onSelect = function()
-                TriggerServerEvent('fish_foodtruck:craftItem', State.currentPlate, recipe.id, State.currentTruckType)
+                TriggerServerEvent('fish_foodtruck:craftItem', recipe.id)
             end
         })
     end

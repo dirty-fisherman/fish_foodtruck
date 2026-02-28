@@ -138,7 +138,7 @@ local function MakeNPCApproach(npc)
                 
                 -- NPC reached vehicle, server will pick an in-stock item
                 local npcNetId = NetworkGetNetworkIdFromEntity(npc)
-                TriggerServerEvent('fish_foodtruck:npcPurchase', State.currentPlate, npcNetId, State.currentTruckType)
+                TriggerServerEvent('fish_foodtruck:npcPurchase', npcNetId)
                 
                 -- Wait for server response
                 Wait(2000)
@@ -255,18 +255,8 @@ CreateThread(function()
     end
 end)
 
--- Debug command to spawn a customer NPC
-RegisterCommand('spawncustomer', function()
-    -- Check if debug mode is enabled
-    if not Config.Debug then
-        lib.notify({
-            title = 'Food Truck',
-            description = 'Debug mode is disabled',
-            type = 'error'
-        })
-        return
-    end
-    
+-- Debug handler to spawn a customer NPC (triggered by ACE-restricted server command)
+RegisterNetEvent('fish_foodtruck:spawnDebugCustomer', function()
     if not State.isWorking then
         lib.notify({
             title = 'Food Truck',
@@ -325,7 +315,8 @@ RegisterCommand('spawncustomer', function()
         description = 'Customer spawned!',
         type = 'success'
     })
-end, false)
+end)
+
 -- Handle NPC purchase result
 RegisterNetEvent('fish_foodtruck:npcPurchaseResult', function(npcNetId, success)
     local npc = NetworkGetEntityFromNetworkId(npcNetId)

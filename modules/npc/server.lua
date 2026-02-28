@@ -1,27 +1,32 @@
 -- NPC selling module - Server side
 
 -- Event to handle NPC purchase
-RegisterNetEvent('fish_foodtruck:npcPurchase', function(plate, npcNetId, truckType)
+RegisterNetEvent('fish_foodtruck:npcPurchase', function(npcNetId)
     local source = source
-    plate = plate:gsub("%s+", "")
-    
-    -- Get truck config to know what items this truck can sell
-    local truckConfig = Config.TruckTypes[truckType]
+
+    -- Derive plate and truck type server-side
+    local playerPed = GetPlayerPed(source)
+    local playerVehicle = GetVehiclePedIsIn(playerPed, false)
+    if not playerVehicle or playerVehicle == 0 then
+        TriggerClientEvent('fish_foodtruck:npcPurchaseResult', source, npcNetId, false)
+        return
+    end
+
+    local plate = GetVehicleNumberPlateText(playerVehicle):gsub("%s+", "")
+    local truckType, truckConfig = Config.GetTruckType(GetEntityModel(playerVehicle))
     if not truckConfig then
         TriggerClientEvent('fish_foodtruck:npcPurchaseResult', source, npcNetId, false)
         return
     end
-    
-    -- Get serving stash
-    local servingStashId = GetOrCreateServingStash(plate)
+
+    -- Get serving stash ID (already registered at work start)
+    local servingStashId = GetServingStashId(plate)
     
     -- Build list of items that are both craftable by this truck AND in stock
     local availableItems = {}
     for _, recipe in ipairs(truckConfig.recipes) do
         local itemName = recipe.output.item
-        local itemCount = exports.ox_inventory:Search(servingStashId, 'count', itemName)
-        
-        if itemCount and itemCount > 0 then
+        if exports.ox_inventory:GetItemCount(servingStashId, itemName) > 0 then
             table.insert(availableItems, itemName)
         end
     end
@@ -67,3 +72,10 @@ RegisterNetEvent('fish_foodtruck:npcPurchase', function(plate, npcNetId, truckTy
         TriggerClientEvent('fish_foodtruck:npcPurchaseResult', source, npcNetId, false)
     end
 end)
+
+-- Debug command to spawn a customer NPC (ACE restricted: command.spawncustomer)
+if Config.Debug then
+    RegisterCommand('spawncustomer', function(source)
+        TriggerClientEvent('fish_foodtruck:spawnDebugCustomer', source)
+    end, true)
+end

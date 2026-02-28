@@ -1,15 +1,20 @@
 -- Crafting module - Server side
 
+local craftingInProgress = {}
+
 -- Event to craft items
-RegisterNetEvent('fish_foodtruck:craftItem', function(plate, recipeId, truckType)
+RegisterNetEvent('fish_foodtruck:craftItem', function(recipeId)
     local source = source
-    
+    if craftingInProgress[source] then return end
+    craftingInProgress[source] = true
+
     -- Get player ped
     local playerPed = GetPlayerPed(source)
     local playerVehicle = GetVehiclePedIsIn(playerPed, false)
     
     -- Verify player is in a vehicle
     if not playerVehicle or playerVehicle == 0 then
+        craftingInProgress[source] = nil
         TriggerClientEvent('ox_lib:notify', source, {
             title = 'Food Truck',
             description = 'You need to be in a food truck!',
@@ -17,10 +22,11 @@ RegisterNetEvent('fish_foodtruck:craftItem', function(plate, recipeId, truckType
         })
         return
     end
-    
-    -- Get truck config
-    local truckConfig = Config.TruckTypes[truckType]
+
+    -- Derive truck type server-side from vehicle model
+    local truckType, truckConfig = Config.GetTruckType(GetEntityModel(playerVehicle))
     if not truckConfig then
+        craftingInProgress[source] = nil
         TriggerClientEvent('ox_lib:notify', source, {
             title = 'Food Truck',
             description = 'Invalid truck type!',
@@ -39,6 +45,7 @@ RegisterNetEvent('fish_foodtruck:craftItem', function(plate, recipeId, truckType
     end
     
     if not recipe then
+        craftingInProgress[source] = nil
         TriggerClientEvent('ox_lib:notify', source, {
             title = 'Food Truck',
             description = 'Invalid recipe!',
@@ -53,11 +60,10 @@ RegisterNetEvent('fish_foodtruck:craftItem', function(plate, recipeId, truckType
     -- Construct glovebox inventory ID (format: 'glove' + plate)
     local gloveboxId = 'glove' .. actualPlate
     
-    -- Count available ingredients using Search on glovebox
+    -- Count available ingredients in glovebox
     local availableIngredients = {}
     for _, ingredient in ipairs(recipe.ingredients) do
-        local count = exports.ox_inventory:Search(gloveboxId, 'count', ingredient.item)
-        availableIngredients[ingredient.item] = count or 0
+        availableIngredients[ingredient.item] = exports.ox_inventory:GetItemCount(gloveboxId, ingredient.item)
     end
     
     -- Check if player has enough ingredients
@@ -72,6 +78,7 @@ RegisterNetEvent('fish_foodtruck:craftItem', function(plate, recipeId, truckType
     end
     
     if not hasIngredients then
+        craftingInProgress[source] = nil
         TriggerClientEvent('ox_lib:notify', source, {
             title = truckConfig.label,
             description = 'Missing ingredients: ' .. table.concat(missingItems, ', '),
@@ -82,6 +89,18 @@ RegisterNetEvent('fish_foodtruck:craftItem', function(plate, recipeId, truckType
         return
     end
     
+    -- Check player can carry the output before starting
+    if not exports.ox_inventory:CanCarryItem(source, recipe.output.item, recipe.output.amount) then
+        craftingInProgress[source] = nil
+        TriggerClientEvent('ox_lib:notify', source, {
+            title = truckConfig.label,
+            description = 'Not enough inventory space!',
+            type = 'error'
+        })
+        TriggerClientEvent('fish_foodtruck:reopenCraftingMenu', source)
+        return
+    end
+
     -- Start crafting with progress bar
     local progressCompleted = lib.callback.await('fish_foodtruck:clientProgressBar', source, recipe.craftTime, 'Making ' .. recipe.label .. '...')
     
@@ -136,4 +155,5 @@ RegisterNetEvent('fish_foodtruck:craftItem', function(plate, recipeId, truckType
         -- Reopen crafting menu after cancellation
         TriggerClientEvent('fish_foodtruck:reopenCraftingMenu', source)
     end
+    craftingInProgress[source] = nil
 end)

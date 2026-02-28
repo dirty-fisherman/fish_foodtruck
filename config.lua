@@ -84,7 +84,7 @@ Config.AllowedJobs = {
 }
 
 -- Debug mode (enables debug commands)
-Config.Debug = true -- Set to true to enable debug commands like /spawncustomer
+Config.Debug = false -- Set to true to enable debug commands like /spawncustomer
 
 -- NPC selling configuration
 Config.NPCSelling = {

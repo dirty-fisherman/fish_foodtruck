@@ -5,6 +5,6 @@ RegisterNetEvent('fish_foodtruck:openServingStash', function(plate)
     local source = source
     -- Trim plate to remove whitespace
     plate = plate:gsub("%s+", "")
-    local stashId = GetOrCreateServingStash(plate)
+    local stashId = GetServingStashId(plate)
     exports.ox_inventory:forceOpenInventory(source, 'stash', stashId)
 end)
