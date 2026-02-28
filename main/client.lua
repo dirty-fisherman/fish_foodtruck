@@ -78,12 +78,13 @@ local function HandleWorkToggle()
         -- Request permission from server
         local plate = GetVehicleNumberPlateText(vehicle)
         State.pendingWork = {
+            vehicleNetId = VehToNet(vehicle),
             vehicle = vehicle,
             truckType = truckType,
             truckConfig = truckConfig,
             plate = plate
         }
-        TriggerServerEvent('fish_foodtruck:requestWorkStart', plate)
+        TriggerServerEvent('fish_foodtruck:requestWorkStart', plate, VehToNet(vehicle))
     end
 end
 
@@ -92,9 +93,10 @@ RegisterCommand(Config.WorkCommand, HandleWorkToggle, false)
 -- Event to toggle work (for radial menus like qb-radialmenu)
 RegisterNetEvent('fish_foodtruck:toggleWork', HandleWorkToggle)
 
--- Detect vehicle exit via cache event (covers F key, being dragged out, teleports, etc.)
+-- cache:vehicle fires immediately client-side whenever we enter or leave any vehicle
+-- Acts as a fast-path for cleanup; monitor thread below is the reliable fallback
 AddEventHandler('cache:vehicle', function(vehicle)
-    if not vehicle and State.isWorking then
+    if (not vehicle or vehicle == 0) and State.isWorking then
         ResetWorkingState()
         lib.notify({
             title = 'Food Truck',
@@ -117,7 +119,7 @@ AddEventHandler('baseevents:onPlayerKilled', function()
     end
 end)
 
--- Monitor for ragdoll/jacking and theft (vehicle-exit is handled by cache:vehicle event)
+-- Monitor for vehicle exit, ragdoll/jacking, and theft
 CreateThread(function()
     while true do
         Wait(State.isWorking and 500 or 2000)
@@ -125,8 +127,16 @@ CreateThread(function()
         if State.isWorking then
             local playerPed = cache.ped
 
+            -- Primary check: player is no longer in the food truck
+            if not IsPedInVehicle(playerPed, State.currentVehicle, false) then
+                ResetWorkingState()
+                lib.notify({
+                    title = 'Food Truck',
+                    description = 'You stopped working',
+                    type = 'info'
+                })
             -- Check if player is being ragdolled or jacked
-            if IsPedRagdoll(playerPed) or IsPedBeingJacked(playerPed) then
+            elseif IsPedRagdoll(playerPed) or IsPedBeingJacked(playerPed) then
                 ResetWorkingState()
                 lib.notify({
                     title = 'Food Truck',
