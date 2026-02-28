@@ -114,9 +114,34 @@ function OpenCraftingMenu()
     lib.showContext('foodtruck_menu')
 end
 
+local COOK_ANIM_DICT = 'amb@prop_human_bbq@male@idle_a'
+local COOK_ANIM_CLIP = 'idle_a'
+
+local function PlayCookingAnim(ped)
+    if not ped or not DoesEntityExist(ped) then return end
+    RequestAnimDict(COOK_ANIM_DICT)
+    local timeout = 0
+    while not HasAnimDictLoaded(COOK_ANIM_DICT) and timeout < 1000 do
+        Wait(10)
+        timeout = timeout + 10
+    end
+    if HasAnimDictLoaded(COOK_ANIM_DICT) then
+        TaskPlayAnim(ped, COOK_ANIM_DICT, COOK_ANIM_CLIP, 8.0, -8.0, -1, 1, 0, false, false, false)
+    end
+end
+
+local function StopCookingAnim(ped)
+    if not ped or not DoesEntityExist(ped) then return end
+    StopAnimTask(ped, COOK_ANIM_DICT, COOK_ANIM_CLIP, -8.0)
+    TaskStandStill(ped, -1)
+end
+
 -- Callback for progress bar
 lib.callback.register('fish_foodtruck:clientProgressBar', function(duration, label)
-    return lib.progressCircle({
+    local servingPed = State.servingPed
+    PlayCookingAnim(servingPed)
+
+    local result = lib.progressCircle({
         duration = duration,
         label = label or 'Preparing food...',
         position = 'bottom',
@@ -127,11 +152,10 @@ lib.callback.register('fish_foodtruck:clientProgressBar', function(duration, lab
             car = true,
             combat = true,
         },
-        anim = {
-            dict = 'mini@repair',
-            clip = 'fixing_a_player'
-        },
     })
+
+    StopCookingAnim(servingPed)
+    return result
 end)
 
 -- Event to reopen menu after crafting
