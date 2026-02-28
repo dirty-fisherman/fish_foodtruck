@@ -92,7 +92,14 @@ Config.NPCSelling = {
     radius = 15.0,
     interval = 30000,
     attackChanceWhenOutOfStock = 1.0,
-    randomAttackChance = 0.05, 
+    randomAttackChance = 0.05,
+    meleeWeaponChance = 0.3, -- Chance an angry NPC pulls a melee weapon
+    meleeWeapons = {
+        'WEAPON_BAT',
+        'WEAPON_KNIFE',
+        'WEAPON_BOTTLE',
+        'WEAPON_CROWBAR',
+    },
 }
 
 -- Helper function to get truck type by model

@@ -23,14 +23,9 @@ local function MakeNPCAttack(npc, reason)
     TaskCombatPed(npc, playerPed, 0, 16) -- Attack player
     
     -- Give NPC a weapon (fists by default, or melee weapon)
-    if math.random() < 0.3 then -- 30% chance of having a melee weapon
-        local meleeWeapons = {
-            'WEAPON_BAT',
-            'WEAPON_KNIFE',
-            'WEAPON_BOTTLE',
-            'WEAPON_CROWBAR'
-        }
-        local weapon = meleeWeapons[math.random(#meleeWeapons)]
+    if math.random() < Config.NPCSelling.meleeWeaponChance then
+        local weapons = Config.NPCSelling.meleeWeapons
+        local weapon = weapons[math.random(#weapons)]
         GiveWeaponToPed(npc, GetHashKey(weapon), 1, false, true)
     end
     
