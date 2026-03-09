@@ -1,0 +1,4 @@
+-- Player-to-player selling via the serving tray stash.
+-- The ox_target "Browse Serving Tray" option is registered in client/main.lua
+-- and calls fishFoodTruck:openTray, which is handled in server/main.lua.
+-- This file is reserved for future extensions (e.g. an order/request system).

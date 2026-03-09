@@ -3,34 +3,32 @@ game 'gta5'
 lua54 'yes'
 
 author 'Fish'
-description 'Food Truck Resource'
-version '1.0.0'
+description 'Food Truck'
+version '2.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
-    'config.lua'
+    'config.lua',
 }
 
 client_scripts {
-    'main/state.lua',
-    'modules/ped/client.lua',
-    'modules/crafting/client.lua',
-    'modules/serving/client.lua',
-    'modules/npc/client.lua',
-    'main/client.lua'
+    'client/state.lua',
+    'client/attach.lua',
+    'client/crafting.lua',
+    'client/npc.lua',
+    'client/main.lua',
 }
 
 server_scripts {
-    'main/utils.lua',
-    'modules/crafting/server.lua',
-    'modules/serving/server.lua',
-    'modules/npc/server.lua',
-    'main/server.lua'
+    'server/main.lua',
+    'server/crafting.lua',
+    'server/npc.lua',
+    'server/selling.lua',
 }
 
 dependencies {
     'ox_target',
     'ox_inventory',
     'ox_core',
-    'ox_lib'
+    'ox_lib',
 }
