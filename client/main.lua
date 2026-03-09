@@ -106,49 +106,10 @@ RegisterKeyMapping('fishFoodTruckMenu', 'Food Truck: Open Work Menu', 'keyboard'
 -- ─── Lifecycle guards ─────────────────────────────────────────────────────────
 local function onDeath()
     if not FishFoodTruck.isWorking then return end
-    lib.hideTextUI()
-    -- On death the ped ragdolls/falls — reset state and unfreeze so the
-    -- respawn flow isn't blocked by a frozen ped.
-    FishFoodTruck.isWorking = false  -- prevent Reset() from teleporting (ped position belongs to death system)
-    local hadVehicle = FishFoodTruck.vehicle
-    local hadCfg     = FishFoodTruck.truckCfg
-    -- Destroy camera
-    if FishFoodTruck.workCam then
-        RenderScriptCams(false, false, 0, true, false)
-        if DoesCamExist(FishFoodTruck.workCam) then DestroyCam(FishFoodTruck.workCam, false) end
-        FishFoodTruck.workCam = nil
-    end
-    -- Close serving door
-    if hadCfg and hadCfg.servingDoor and hadVehicle and DoesEntityExist(hadVehicle) then
-        SetVehicleDoorShut(hadVehicle, hadCfg.servingDoor, false)
-    end
-    -- Always unfreeze and detach regardless of flags
-    local ped = cache.ped
-    if ped then
-        if FishFoodTruck.isAttached then DetachEntity(ped, true, true) end
-        FreezeEntityPosition(ped, false)
-        SetEntityCollision(ped, true, true)
-        SetBlockingOfNonTemporaryEvents(ped, false)
-        SetPedCanRagdoll(ped, true)
-        -- Don't ClearPedTasks on death — let the ragdoll play out naturally
-    end
-    -- Notify server
-    if hadVehicle and DoesEntityExist(hadVehicle) then
-        TriggerServerEvent('fishFoodTruck:stopWork', VehToNet(hadVehicle))
-    end
-    -- Clear state
-    FishFoodTruck.isAttached     = false
-    FishFoodTruck.vehicle        = nil
-    FishFoodTruck.plate          = nil
-    FishFoodTruck.truckKey       = nil
-    FishFoodTruck.truckCfg       = nil
-    FishFoodTruck.entryCoords    = nil
-    FishFoodTruck.entryHeading   = 0.0
-    FishFoodTruck.entryBone      = nil
-    FishFoodTruck.sellingToNPCs  = false
-    FishFoodTruck.npcApproaching = false
+    FishFoodTruck.Reset()
 end
 
+-- Belt-and-suspenders: catch baseevents death if that resource is loaded.
 AddEventHandler('baseevents:onPlayerDied',   onDeath)
 AddEventHandler('baseevents:onPlayerKilled', onDeath)
 
@@ -176,9 +137,12 @@ end)
 -- Monitor thread: stop work if the truck entity is deleted
 CreateThread(function()
     while true do
-        Wait(FishFoodTruck.isWorking and 1000 or 3000)
+        Wait(FishFoodTruck.isWorking and 500 or 2000)
         if FishFoodTruck.isWorking then
-            if not FishFoodTruck.vehicle or not DoesEntityExist(FishFoodTruck.vehicle) then
+            -- Detect death regardless of which death event system the server uses.
+            if IsPedDeadOrDying(cache.ped, true) then
+                onDeath()
+            elseif not FishFoodTruck.vehicle or not DoesEntityExist(FishFoodTruck.vehicle) then
                 lib.notify({ title = 'Food Truck', description = 'Truck is gone!', type = 'error' })
                 FishFoodTruck.Reset()
             end

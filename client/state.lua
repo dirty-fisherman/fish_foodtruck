@@ -114,13 +114,12 @@ function FishFoodTruck.Reset(customExitPos, customExitHeading)
             SetEntityHeading(ped, exitHdg)
         end
 
-        -- FishFoodTruck.Attach disabled the ped's global collision (SetEntityCollision false) before
-        -- teleporting in.  Restore it now that the ped is at the exit position.
+        -- FishFoodTruck.Attach disabled the ped's global collision before teleporting in.
+        -- Restore it now that the ped is at the exit position.
         SetEntityCollision(ped, true, true)
         if hadVehicle and DoesEntityExist(hadVehicle) then
             SetEntityCollision(hadVehicle, true, true)
         end
-
         local p = GetEntityCoords(ped)
         print(string.format('[FishFoodTruck] Reset  collision restored  pedPos=(%.2f, %.2f, %.2f)', p.x, p.y, p.z))
     end
