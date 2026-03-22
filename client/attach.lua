@@ -161,10 +161,19 @@ function FishFoodTruck.Detach()
 
     FishFoodTruck.isAttached = false
 
-    DetachEntity(ped, true, true)
+    -- Store vehicle reference before detaching to restore its collision
+    local hadVehicle = FishFoodTruck.vehicle
+
+    -- Use ignorePhysics=false to let the ped respect physics during detach (FiveM best practice)
+    DetachEntity(ped, true, false)
     FreezeEntityPosition(ped, false)
     SetEntityCollision(ped, true, true)
     SetBlockingOfNonTemporaryEvents(ped, false)
     SetPedCanRagdoll(ped, true)
     ClearPedTasks(ped)
+
+    -- Restore vehicle collision so player can't walk through it post-detach
+    if hadVehicle and DoesEntityExist(hadVehicle) then
+        SetEntityCollision(hadVehicle, true, true)
+    end
 end

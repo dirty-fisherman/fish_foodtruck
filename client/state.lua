@@ -92,7 +92,8 @@ function FishFoodTruck.Reset(customExitPos, customExitHeading)
     local ped = cache.ped
     if ped then
         if FishFoodTruck.isAttached then
-            DetachEntity(ped, true, true)
+            -- Use ignorePhysics=false to let the ped respect physics during detach (FiveM best practice)
+            DetachEntity(ped, true, false)
         end
         FreezeEntityPosition(ped, false)
         SetBlockingOfNonTemporaryEvents(ped, false)

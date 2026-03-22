@@ -80,7 +80,7 @@ RegisterNetEvent('fishFoodTruck:workApproved', function(vehicleNetId, plate, tru
     FishFoodTruck.Attach(vehicle)
 
     -- Persistent HUD hint shown for the entire working session
-    lib.showTextUI('**F5** Menu [**F**] Exit', {
+    lib.showTextUI('[F5] Menu [F] Exit', {
         position = 'bottom-center',
         icon     = 'fa-solid fa-utensils',
     })
