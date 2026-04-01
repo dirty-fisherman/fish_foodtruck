@@ -16,7 +16,7 @@ Config.Trucks = {
         -- How far to offset the player on exit.
         -- sideOffset: negative = toward vehicle centre (left/right fine-tune)
         -- backOffset: positive = toward rear of vehicle
-        exitOffset      = { side = -0.5, back = 2.5 },
+        exitOffset      = { side = -0.5, back = 0.5 },
         items = {
             {
                 id          = 'icecream',
@@ -40,7 +40,7 @@ Config.Trucks = {
         -- Vehicle door index to open when working.
         -- 5 = trunk/boot — the taco truck's serving window cover.
         servingDoor     = 5,
-        exitOffset      = { side = -0.5, back = 2 },
+        exitOffset      = { side = -0.5, back = 0.5 },
         items = {
             {
                 id          = 'taco',
